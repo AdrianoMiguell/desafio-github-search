@@ -10,6 +10,7 @@ import android.widget.EditText
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import br.com.igorbag.githubsearch.R
@@ -29,14 +30,14 @@ import java.net.URL
 
 class MainActivity : AppCompatActivity() {
 
-    lateinit var userName: String
+//    lateinit var cardRepository:
     lateinit var nomeUsuario: EditText
     lateinit var btnConfirmar: Button
     lateinit var listaRepositories: RecyclerView
     lateinit var errors: TextView
-    lateinit var repository: Repository
-    lateinit var githubApi: GitHubService
-    lateinit var gitHubApiRetroFit: Retrofit
+//    lateinit var repository: Repository
+//    lateinit var githubApi: GitHubService
+//    lateinit var gitHubApiRetroFit: Retrofit
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -53,6 +54,7 @@ class MainActivity : AppCompatActivity() {
         nomeUsuario = findViewById(R.id.et_nome_usuario)
         btnConfirmar = findViewById(R.id.btn_confirmar)
         listaRepositories = findViewById(R.id.rv_lista_repositories)
+//        cardRepository = findViewById(R.id.cl_card_content)
         errors = findViewById(R.id.app_error)
     }
 
@@ -82,8 +84,6 @@ class MainActivity : AppCompatActivity() {
 
     private fun showUserName(): String? {
         //@TODOOk 4- depois de persistir o usuario exibir sempre as informacoes no EditText  se a sharedpref possuir algum valor, exibir no proprio editText o valor salvo
-//        val sharedPref = getPreferences(Context.MODE_PRIVATE)
-//        val getUserName = sharedPref.getString(R.string.nome_usuario.toString(), "nada")
         var getUserName = ""
         if(nomeUsuario.text != null) {
             getUserName = nomeUsuario.text.toString()
@@ -126,12 +126,16 @@ class MainActivity : AppCompatActivity() {
                 if (response.isSuccessful) {
                         errors.text = "chegamos no gitHubApiRetroFit real, para pegar dados de api, e deu muito bom"
                     var message = ""
-                    val repoList = response.body()
-                    repoList?.let {
-                        setupAdapter(it)
-                        repoList.forEach {
-                            message += " |-|   ${it.name} - ${it.htmlUrl}\n"
+                    try{
+                        val repoList = response.body()
+                        repoList?.let {
+                            setupAdapter(it)
+                            repoList.forEach {
+                                message += " |-|   ${it.name} - ${it.htmlUrl}\n"
+                            }
                         }
+                    } catch (ex: Exception) {
+                        errors.text = "erros na construção do setupAdapter"
                     }
 //                    errors.text = message
                 } else {
@@ -159,14 +163,26 @@ class MainActivity : AppCompatActivity() {
             passando a listagem dos repositorios
          */
 
-        val adapter = RepositoryAdapter(list)
-        listaRepositories.adapter = adapter
+        try {
+            val adapter = RepositoryAdapter(list)
+            listaRepositories.adapter = adapter
+//            adapter.carItemLister = {
+//                    repository -> val repositoryUrl = repository
+//                errors.text = repositoryUrl.toString()
+////            openBrowser(repositoryUrl)
+//            }
+//            adapter.btnShareLister = {
+//                    repository -> val repositoryUrl = repository
+////            shareRepositoryLink(repositoryUrl)
+//            }
+        } catch (ex: Exception) {
+            errors.text = "Erros errros no adapter"
+        }
 
     }
 
-
     // Metodo responsavel por compartilhar o link do repositorio selecionado
-    // @Todo 11 - Colocar esse metodo no click do share item do adapter
+    // @TodoOk 11 - Colocar esse metodo no click do share item do adapter
     fun shareRepositoryLink(urlRepository: String) {
         val sendIntent: Intent = Intent().apply {
             action = Intent.ACTION_SEND
@@ -180,7 +196,7 @@ class MainActivity : AppCompatActivity() {
 
     // Metodo responsavel por abrir o browser com o link informado do repositorio
 
-    // @Todo 12 - Colocar esse metodo no click item do adapter
+    // @TodoOk 12 - Colocar esse metodo no click item do adapter
     fun openBrowser(urlRepository: String) {
         startActivity(
             Intent(
