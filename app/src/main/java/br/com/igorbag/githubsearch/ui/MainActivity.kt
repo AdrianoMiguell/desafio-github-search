@@ -4,40 +4,32 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
-import android.util.Log
 import android.widget.Button
 import android.widget.EditText
 import android.widget.TextView
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import androidx.constraintlayout.widget.ConstraintLayout
-import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import br.com.igorbag.githubsearch.R
 import br.com.igorbag.githubsearch.data.GitHubService
 import br.com.igorbag.githubsearch.domain.Repository
 import br.com.igorbag.githubsearch.ui.adapter.RepositoryAdapter
-import org.json.JSONArray
-import org.json.JSONTokener
-import org.w3c.dom.Text
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
-import java.net.HttpURLConnection
-import java.net.URL
 
 class MainActivity : AppCompatActivity() {
 
-//    lateinit var cardRepository:
+//        lateinit var cardRepository:
+//    lateinit var nomeUsuario: EditText
+//    lateinit var btnConfirmar: Button
+//    lateinit var listaRepositories: RecyclerView
+
     lateinit var nomeUsuario: EditText
     lateinit var btnConfirmar: Button
     lateinit var listaRepositories: RecyclerView
     lateinit var errors: TextView
-//    lateinit var repository: Repository
-//    lateinit var githubApi: GitHubService
-//    lateinit var gitHubApiRetroFit: Retrofit
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -45,7 +37,6 @@ class MainActivity : AppCompatActivity() {
         setupView()
         setupListeners()
         setupRetrofit()
-        getAllReposByUserName()
     }
 
     // Metodo responsavel por realizar o setup da view e recuperar os Ids do layout
@@ -54,7 +45,6 @@ class MainActivity : AppCompatActivity() {
         nomeUsuario = findViewById(R.id.et_nome_usuario)
         btnConfirmar = findViewById(R.id.btn_confirmar)
         listaRepositories = findViewById(R.id.rv_lista_repositories)
-//        cardRepository = findViewById(R.id.cl_card_content)
         errors = findViewById(R.id.app_error)
     }
 
@@ -63,8 +53,6 @@ class MainActivity : AppCompatActivity() {
         //@TODOOk 2 - colocar a acao de click do botao confirmar
         btnConfirmar.setOnClickListener {
             saveUserLocal(nomeUsuario.text.toString())
-            showUserName()
-            errors.setText(showUserName())
             getAllReposByUserName()
         }
     }
@@ -104,7 +92,6 @@ class MainActivity : AppCompatActivity() {
             .addConverterFactory(GsonConverterFactory.create())
             .build()
 
-
             var gitHubApiRetroFit = retrofit.create(GitHubService::class.java)
             return  gitHubApiRetroFit
         }
@@ -122,9 +109,7 @@ class MainActivity : AppCompatActivity() {
                         call: Call<List<Repository>>,
                         response: Response<List<Repository>>
                     ) {
-                        errors.text = "entrou pelo menos"
                 if (response.isSuccessful) {
-                        errors.text = "chegamos no gitHubApiRetroFit real, para pegar dados de api, e deu muito bom"
                     var message = ""
                     try{
                         val repoList = response.body()
@@ -134,12 +119,13 @@ class MainActivity : AppCompatActivity() {
                                 message += " |-|   ${it.name} - ${it.htmlUrl}\n"
                             }
                         }
+                        errors.text = "Dados retornados com sucesso!"
                     } catch (ex: Exception) {
-                        errors.text = "erros na construção do setupAdapter"
+                        errors.text = "Erro na conexão com a API Github"
                     }
 //                    errors.text = message
                 } else {
-                    errors.text = "chegamos no gitHubApiRetroFit real, para pegar dados de api, mas deu ruim"
+                    errors.text = "Ops! Algo deu errado na conexão!"
 //                    Toast.makeText(applicationContext, R.string.app_error, Toast.LENGTH_LONG).show()
 //                    errors.text = "\nError em pegar o response do github API"
                 }
@@ -150,8 +136,7 @@ class MainActivity : AppCompatActivity() {
                     }
                 })
         } catch (ex: Exception) {
-            Log.e("Erro" , "Erro ao realizar procedimento")
-            errors.text = "Erro, deu ruim na conexão"
+            errors.text = "Erro na conexão"
         }
 
     }
@@ -163,26 +148,22 @@ class MainActivity : AppCompatActivity() {
             passando a listagem dos repositorios
          */
 
-        try {
-            val adapter = RepositoryAdapter(list)
-            listaRepositories.adapter = adapter
+            try {
+                val adapter = RepositoryAdapter(list)
+                listaRepositories.adapter = adapter
 //            adapter.carItemLister = {
-//                    repository -> val repositoryUrl = repository
-//                errors.text = repositoryUrl.toString()
-////            openBrowser(repositoryUrl)
+//                repository -> val reposUrl = repository.htmlUrl
 //            }
 //            adapter.btnShareLister = {
-//                    repository -> val repositoryUrl = repository
-////            shareRepositoryLink(repositoryUrl)
+//                repository -> val reposUrl = repository.htmlUrl
 //            }
-        } catch (ex: Exception) {
-            errors.text = "Erros errros no adapter"
-        }
-
+            } catch (ex: Exception) {
+                errors.text = "Ops! Algo deu errado!"
+            }
     }
 
     // Metodo responsavel por compartilhar o link do repositorio selecionado
-    // @TodoOk 11 - Colocar esse metodo no click do share item do adapter
+    // @Todo 11 - Colocar esse metodo no click do share item do adapter
     fun shareRepositoryLink(urlRepository: String) {
         val sendIntent: Intent = Intent().apply {
             action = Intent.ACTION_SEND
@@ -196,7 +177,7 @@ class MainActivity : AppCompatActivity() {
 
     // Metodo responsavel por abrir o browser com o link informado do repositorio
 
-    // @TodoOk 12 - Colocar esse metodo no click item do adapter
+    // @Todo 12 - Colocar esse metodo no click item do adapter
     fun openBrowser(urlRepository: String) {
         startActivity(
             Intent(
